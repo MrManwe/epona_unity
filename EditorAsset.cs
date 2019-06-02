@@ -39,3 +39,5 @@ public class EditorAsset<AssetType> where AssetType: UnityEngine.Object
         return m_upToDate;
     }
 }
+
+
