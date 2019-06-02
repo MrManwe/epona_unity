@@ -18,3 +18,6 @@ public class AutoSelected : MonoBehaviour {
 	}
 	
 }
+
+
+
