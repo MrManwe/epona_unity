@@ -15,7 +15,14 @@ namespace epona
         private void Start()
         {
             Text text = GetComponent<Text>();
-            text.text = String.Format(LocalizationManager.friend_instance.Get(m_id), m_args);
+            try
+            {
+                text.text = String.Format(LocalizationManager.friend_instance.Get(m_id), m_args);
+            }
+            catch (FormatException fe)
+            {
+                text.text = LocalizationManager.friend_instance.Get(m_id);
+            }
             LocalizationManager.friend_instance.AddObserver(this);
         }
 

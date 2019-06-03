@@ -12,7 +12,11 @@ namespace epona
     [System.Serializable]
     public class LocalizationId : Identifier<LocalizationId, string> { public LocalizationId(string s) : base(s) { } }
 
-
+    public enum LocalizationCode
+    {
+        en_EN,
+        es_ES
+    }
 
     public struct LanguageChanged
     {
@@ -25,7 +29,7 @@ namespace epona
         Observable<LanguageChanged> m_langChangedObservable = new Observable<LanguageChanged>();
 
         Localization m_currentLocalization;
-        string m_currentLang;
+        LocalizationCode m_currentLang;
         static LocalizationManager s_localizationManager;
 
         public static LocalizationManager friend_instance
@@ -34,7 +38,7 @@ namespace epona
             {
                 if(s_localizationManager == null)
                 {
-                    s_localizationManager = new LocalizationManager();
+                    s_localizationManager = new LocalizationManager(LocalizationCode.en_EN);
                 }
                 return s_localizationManager;
             }
@@ -46,7 +50,14 @@ namespace epona
             s_localizationManager = this;
         }
 
-        public string currentLanguage
+        public LocalizationManager(LocalizationCode i_code)
+        {
+            Debug.Assert(s_localizationManager == null);
+            s_localizationManager = this;
+            LoadLanguage(i_code);
+        }
+
+        public LocalizationCode currentLanguage
         {
             get
             {
@@ -70,50 +81,55 @@ namespace epona
             }
         }
 
-        public void LoadLanguage(string langCode)
+        private static Localization LoadLocalization(LocalizationCode i_localization)
         {
-            TextAsset textAsset = (TextAsset)Resources.Load("texts/texts.lang");
-            Dictionary<string, Localization> localizations = LocalizationParser.Load(textAsset);
+            Localization localization = new Localization();
+            TextData[] texts = Resources.LoadAll<TextData>("texts/");
+            foreach (TextData text in texts)
+            {
+                localization.Set(text.id, text.get(i_localization));
+            }
 
-            //Dictionary<string, texts.Localization> localizations = texts.LocalizationParser.Load(Path.Combine(Application.streamingAssetsPath, "texts/texts.lang.xls"));
-            if (localizations.ContainsKey(langCode))
-            {
-                m_currentLang = langCode;
-                m_currentLocalization = localizations[langCode];
-                m_langChangedObservable.Notify(new LanguageChanged());
-            }
-            else
-            {
-                m_currentLang = "";
-                m_currentLocalization = null;
-            }
+            return localization;
         }
+
+        public void LoadLanguage(LocalizationCode i_localization)
+        {
+            Localization localization = LoadLocalization(i_localization);
+
+            m_currentLang = i_localization;
+            m_currentLocalization = localization;
+            m_langChangedObservable.Notify(new LanguageChanged());
+        }
+
+        //Deprecated
+        //public void LoadLanguageFromExcel(string langCode)
+        //{
+        //    TextAsset textAsset = (TextAsset)Resources.Load("texts/texts.lang");
+        //    Dictionary<string, Localization> localizations = LocalizationParser.Load(textAsset);
+        //
+        //    //Dictionary<string, texts.Localization> localizations = texts.LocalizationParser.Load(Path.Combine(Application.streamingAssetsPath, "texts/texts.lang.xls"));
+        //    if (localizations.ContainsKey(langCode))
+        //    {
+        //        m_currentLang = langCode;
+        //        m_currentLocalization = localizations[langCode];
+        //        m_langChangedObservable.Notify(new LanguageChanged());
+        //    }
+        //    else
+        //    {
+        //        m_currentLang = "";
+        //        m_currentLocalization = null;
+        //    }
+        //}
 
 #if UNITY_EDITOR
 
-    static EditorAsset<TextAsset> s_textFile;
-    static Dictionary<string, Localization> s_localizations;
+    //static EditorAsset<TextAsset> s_textFile;
+    //static Dictionary<LocalizationCode, Localization> s_localizations;
 
-    public static Localization GetLocalization(string i_code)
+    public static Localization GetLocalization(LocalizationCode i_code)
     {
-            if (s_textFile == null)
-            {
-                s_textFile = new EditorAsset<TextAsset>("texts/texts.lang", ".xml");
-            }
-
-            if (!s_textFile.IsUpToDate())
-            {
-                s_localizations = LocalizationParser.Load(s_textFile.LoadAsset());
-            }
-
-            if (s_localizations.ContainsKey(i_code))
-            {
-                return s_localizations[i_code];
-            }
-            else
-            {
-                return null;
-            }
+            return LoadLocalization(i_code);
     }
 
 #endif
@@ -144,7 +160,7 @@ public class LocalizationIdEditor : PropertyDrawer
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
-        epona.Localization loc = epona.LocalizationManager.GetLocalization("es");
+        epona.Localization loc = epona.LocalizationManager.GetLocalization(epona.LocalizationCode.en_EN);
         IList<epona.LocalizationId> keys = loc.GetKeys();
         
         string[] options = new string[keys.Count];
@@ -175,6 +191,11 @@ public class LocalizationIdEditor : PropertyDrawer
         {
             index = 0;
         }
+        
+        //if (GUILayout.Button("Refresh"))
+        //{
+        //
+        //}
         SetValue(property, options[index]);
     }
 
