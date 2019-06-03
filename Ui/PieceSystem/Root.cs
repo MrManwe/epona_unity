@@ -114,12 +114,12 @@ namespace epona
         public abstract class Root<T> : MonoBehaviour where T : class
         {
             RootImpl<T> m_impl = new RootImpl<T>();
-            public void Craft(T i_data)
+            protected void Craft(T i_data)
             {
                 m_impl.Craft(i_data, gameObject);
             }
 
-            public void UpdatePieces(T i_data)
+            protected void UpdatePieces(T i_data)
             {
                 m_impl.UpdatePieces(i_data);
             }
