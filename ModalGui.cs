@@ -40,6 +40,11 @@ namespace epona
                 data = DefaultInput();
             }
             m_canvas.sortingOrder = manager.GetCurrentSortingLayer();
+            if (UnityEngine.EventSystems.EventSystem.current == null)
+            {
+                GameObject ev = new GameObject("tmp_EventSystem");
+                ev.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            }
             UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(m_initialSelectable.gameObject);
             Initialize(data as Input);
             m_yield = data.yielder;
