@@ -10,6 +10,8 @@ namespace epona
     interface IInputSystem
     {
         IInput GetPlayerInput(PlayerInputId i_playerIndex);
+
+        void RegisterInput(PlayerInputId i_playerIndex, IInput i_input);
     }
 
     class InputSystem: IInputSystem
@@ -19,6 +21,7 @@ namespace epona
             switch(i_playerIndex)
             {
                 case PlayerInputId.Player1:
+                    Debug.Assert(m_player1 != null);
                     return m_player1;
             }
             return null;
@@ -95,10 +98,15 @@ namespace epona
 
         public InputSystem()
         {
-            m_player1 = new Player1Input();
+            
         }
 
-        Player1Input m_player1;
+        public void RegisterInput(PlayerInputId i_playerIndex, IInput i_input)
+        {
+            m_player1 = i_input;
+        }
+
+        IInput m_player1;
         
     }
 }
